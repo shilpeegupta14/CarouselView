@@ -1,4 +1,4 @@
-# Layered 3D Carousel - Technical Documentation
+# Layered 3D Carousel
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -156,6 +156,192 @@ flowchart TD
 │  └───────────────────────────────┘  │
 └─────────────────────────────────────┘
 ```
+---
+
+## Component Structure
+
+### 1. CarouselView
+**File**: `Components/CarouselView.swift`
+
+**Responsibilities**:
+- Main container view
+- Calculates responsive card size
+- Manages activeIndex state
+- Coordinates CardStackView and PageIndicator
+
+**Properties**:
+- `@State private var activeIndex: Int?`
+- `@Binding var carouselItems: [CarouselItem]`
+
+---
+
+### 2. CardStackView
+**File**: `Components/CardStackView.swift`
+
+**Responsibilities**:
+- Wraps ScrollView with horizontal scrolling
+- Manages scroll position tracking
+- Handles initial card positioning
+- Applies scroll behavior modifiers
+
+**Properties**:
+- `@Binding var activeIndex: Int?`
+- `@Binding var carouselItems: [CarouselItem]`
+- `let cardSize: Double`
+- `@State private var didAppear: Bool`
+
+---
+
+### 3. CardView
+**File**: `Components/CardView.swift`
+
+**Responsibilities**:
+- Renders individual card items
+- Applies scroll transitions
+- Calculates z-index layering
+- Manages card layout in HStack
+
+**Properties**:
+- `@Binding var items: [CarouselItem]`
+- `@Binding var activeIndex: Int?`
+- `let cardSize: Double`
+
+---
+
+### 4. CardOverlay
+**File**: `Components/CardOverlay.swift`
+
+**Responsibilities**:
+- Displays card title
+- Provides consistent styling
+- Reusable overlay component
+
+**Properties**:
+- `let title: String`
+
+---
+
+### 5. PageIndicator
+**File**: `Components/PageIndicator.swift`
+
+**Responsibilities**:
+- Visual indicator of current position
+- Animated dot transitions
+- Shows total number of items
+
+**Properties**:
+- `var currentIndex: Int`
+- `var totalItems: Int`
+
+---
+
+### 6. ViewModel
+**File**: `ViewModel.swift`
+
+**Responsibilities**:
+- Manages carousel data
+- Provides sample data
+- ObservableObject for data binding
+
+**Properties**:
+- `@Published var carouselItems: [CarouselItem]`
+
+---
+
+### 7. CarouselItem
+**File**: `Model/CarouselItem.swift`
+
+**Structure**:
+```swift
+struct CarouselItem: Identifiable, Equatable {
+    let id: Int
+    let name: String
+    let image: String
+}
+```
+
+---
+## Implementation Details
+
+### Z-Index Calculation
+
+The `layerOrder` function calculates z-index based on distance from active card:
+
+```swift
+func layerOrder(for index: Int, activeIndex: Int?) -> Double {
+    guard let activeIndex else { return 0 }
+    let distance = abs(Double(index - activeIndex))
+    let zIndex = 10.0 - distance
+    return max(zIndex, .leastNonzeroMagnitude)
+}
+```
+
+**Example**:
+- Active card (index 2): z-index = 10.0
+- Adjacent cards (index 1, 3): z-index = 9.0
+- Distance 2 (index 0, 4): z-index = 8.0
+
+---
+
+### Card Size Calculation
+
+```swift
+let availableHeight = max(proxy.size.height, 0)
+let baseWidth = max(proxy.size.width - 100, proxy.size.width * 0.7)
+let cardSize = max(min(baseWidth, availableHeight), 1)
+```
+
+**Logic**:
+1. Calculate 70% of available width
+2. Subtract 100 points for margins
+3. Take minimum of width and height
+4. Ensure minimum size of 1 point
+
+---
+
+### Scroll Transition Animation
+
+The scroll transition creates a depth effect:
+
+```swift
+.scrollTransition { content, phase in
+    content
+        .scaleEffect(y: phase.isIdentity ? 1 : 0.7)
+}
+```
+
+**Animation States**:
+- **Identity** (center): Full scale (1.0)
+- **Off-center**: Scaled down (0.7)
+- **Smooth interpolation** between states
+
+---
+
+### Initialization Flow
+
+1. `CardStackView.onAppear` sets `activeIndex = 1`
+2. `scrollPosition(id:)` scrolls to card with id = 1
+3. `scrollTargetBehavior` aligns card to center
+4. Z-index and transitions apply based on position
+
+---
+
+## Key Design Decisions
+
+1. **Negative Spacing (-24)**: Creates overlapping card effect
+2. **Initial Index = 1**: Starts at second card for better UX
+3. **Dynamic Sizing**: Responsive to screen size
+4. **Component Extraction**: CardOverlay for reusability
+5. **Internal State Management**: didAppear managed internally
+
+---
+
+## Requirements
+
+- **iOS**: 17.0+
+- **Xcode**: 15.0+
+- **Swift**: 5
+- **SwiftUI**: Framework
 
 ---
 
@@ -349,195 +535,6 @@ enum ScrollTransitionPhase {
 }
 ```
 
----
-
-## Component Structure
-
-### 1. CarouselView
-**File**: `Components/CarouselView.swift`
-
-**Responsibilities**:
-- Main container view
-- Calculates responsive card size
-- Manages activeIndex state
-- Coordinates CardStackView and PageIndicator
-
-**Properties**:
-- `@State private var activeIndex: Int?`
-- `@Binding var carouselItems: [CarouselItem]`
-
----
-
-### 2. CardStackView
-**File**: `Components/CardStackView.swift`
-
-**Responsibilities**:
-- Wraps ScrollView with horizontal scrolling
-- Manages scroll position tracking
-- Handles initial card positioning
-- Applies scroll behavior modifiers
-
-**Properties**:
-- `@Binding var activeIndex: Int?`
-- `@Binding var carouselItems: [CarouselItem]`
-- `let cardSize: Double`
-- `@State private var didAppear: Bool`
-
----
-
-### 3. CardView
-**File**: `Components/CardView.swift`
-
-**Responsibilities**:
-- Renders individual card items
-- Applies scroll transitions
-- Calculates z-index layering
-- Manages card layout in HStack
-
-**Properties**:
-- `@Binding var items: [CarouselItem]`
-- `@Binding var activeIndex: Int?`
-- `let cardSize: Double`
-
----
-
-### 4. CardOverlay
-**File**: `Components/CardOverlay.swift`
-
-**Responsibilities**:
-- Displays card title
-- Provides consistent styling
-- Reusable overlay component
-
-**Properties**:
-- `let title: String`
-
----
-
-### 5. PageIndicator
-**File**: `Components/PageIndicator.swift`
-
-**Responsibilities**:
-- Visual indicator of current position
-- Animated dot transitions
-- Shows total number of items
-
-**Properties**:
-- `var currentIndex: Int`
-- `var totalItems: Int`
-
----
-
-### 6. ViewModel
-**File**: `ViewModel.swift`
-
-**Responsibilities**:
-- Manages carousel data
-- Provides sample data
-- ObservableObject for data binding
-
-**Properties**:
-- `@Published var carouselItems: [CarouselItem]`
-
----
-
-### 7. CarouselItem
-**File**: `Model/CarouselItem.swift`
-
-**Structure**:
-```swift
-struct CarouselItem: Identifiable, Equatable {
-    let id: Int
-    let name: String
-    let image: String
-}
-```
-
----
-
-## Implementation Details
-
-### Z-Index Calculation
-
-The `layerOrder` function calculates z-index based on distance from active card:
-
-```swift
-func layerOrder(for index: Int, activeIndex: Int?) -> Double {
-    guard let activeIndex else { return 0 }
-    let distance = abs(Double(index - activeIndex))
-    let zIndex = 10.0 - distance
-    return max(zIndex, .leastNonzeroMagnitude)
-}
-```
-
-**Example**:
-- Active card (index 2): z-index = 10.0
-- Adjacent cards (index 1, 3): z-index = 9.0
-- Distance 2 (index 0, 4): z-index = 8.0
-
----
-
-### Card Size Calculation
-
-```swift
-let availableHeight = max(proxy.size.height, 0)
-let baseWidth = max(proxy.size.width - 100, proxy.size.width * 0.7)
-let cardSize = max(min(baseWidth, availableHeight), 1)
-```
-
-**Logic**:
-1. Calculate 70% of available width
-2. Subtract 100 points for margins
-3. Take minimum of width and height
-4. Ensure minimum size of 1 point
-
----
-
-### Scroll Transition Animation
-
-The scroll transition creates a depth effect:
-
-```swift
-.scrollTransition { content, phase in
-    content
-        .scaleEffect(y: phase.isIdentity ? 1 : 0.7)
-}
-```
-
-**Animation States**:
-- **Identity** (center): Full scale (1.0)
-- **Off-center**: Scaled down (0.7)
-- **Smooth interpolation** between states
-
----
-
-### Initialization Flow
-
-1. `CardStackView.onAppear` sets `activeIndex = 1`
-2. `scrollPosition(id:)` scrolls to card with id = 1
-3. `scrollTargetBehavior` aligns card to center
-4. Z-index and transitions apply based on position
-
----
-
-## Key Design Decisions
-
-1. **Negative Spacing (-24)**: Creates overlapping card effect
-2. **Initial Index = 1**: Starts at second card for better UX
-3. **Dynamic Sizing**: Responsive to screen size
-4. **Component Extraction**: CardOverlay for reusability
-5. **Internal State Management**: didAppear managed internally
-
----
-
-## Requirements
-
-- **iOS**: 17.0+
-- **Xcode**: 15.0+
-- **Swift**: 5
-- **SwiftUI**: Framework
-
----
 
 ## Future Enhancements
 
