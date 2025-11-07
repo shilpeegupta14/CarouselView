@@ -15,6 +15,8 @@
 
 Layered 3D Carousel is a SwiftUI-based iOS application that displays a horizontally scrollable carousel of cards with a 3D layered effect. The carousel features smooth scrolling animations, automatic card alignment, and visual depth through z-index layering.
 
+![ezgif-6e7ad115fe7844d2](https://github.com/user-attachments/assets/6faa3cdd-cecb-4ffe-9520-1a05577b7e9e)
+
 ---
 
 ## Functional Requirements
@@ -532,7 +534,7 @@ The scroll transition creates a depth effect:
 
 - **iOS**: 17.0+
 - **Xcode**: 15.0+
-- **Swift**: 5.9+
+- **Swift**: 5
 - **SwiftUI**: Framework
 
 ---
@@ -550,10 +552,3 @@ The scroll transition creates a depth effect:
 ## Author
 
 Created by shilpee.gupta
-
----
-
-## License
-
-This project is available for use as specified in the project license.
-
