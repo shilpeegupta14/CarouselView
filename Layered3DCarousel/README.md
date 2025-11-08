@@ -339,7 +339,7 @@ The scroll transition creates a depth effect:
 ## Requirements
 
 - **iOS**: 17.0+
-- **Xcode**: 15.0+
+- **Xcode**: 16.0+
 - **Swift**: 5
 - **SwiftUI**: Framework
 
