@@ -14,7 +14,7 @@ struct CardView: View {
     let cardSize: Double
     
     var body: some View {
-        HStack(spacing: -16) {
+        HStack(spacing: -20) {
             ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                 Image(item.image)
                     .resizable()
